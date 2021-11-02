@@ -1,11 +1,10 @@
 import { BlurView } from "expo-blur";
 import React from "react";
 import { StyleSheet, useColorScheme } from "react-native";
-import { AirbnbRating } from "react-native-ratings";
 import styled from "styled-components/native";
-import { DARK_GREY_COLOR, YELLOW_COLOR } from "../styles/colors";
 import { ellipsisWords, makeImgPath } from "../utils";
 import Poster from "./Poster";
+import Votes from "./Votes";
 
 const SlideView = styled.View`
   flex: 1;
@@ -26,21 +25,12 @@ const Column = styled.View`
 const Title = styled.Text`
   color: ${(props) => props.theme.textColor};
   margin-top: 10px;
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 800;
 `;
 const Overview = styled.Text`
   color: ${(props) => props.theme.textColor};
   margin-top: 10px;
-`;
-const Votes = styled.View`
-  flex-direction: row;
-  margin-top: 10px;
-`;
-const VotesRating = styled.Text`
-  margin-left: 10px;
-  margin-top: 5px;
-  color: ${(props) => props.theme.textColor};
 `;
 
 const Slide: React.FC<ISlideProps> = ({
@@ -50,37 +40,26 @@ const Slide: React.FC<ISlideProps> = ({
   overview,
   voteAverage,
 }) => {
-  const vote = Math.floor(Math.round(voteAverage) / 2);
   const isDark = useColorScheme() === "dark";
   return (
     <SlideView>
-      <SlideBackgroundImg
-        style={StyleSheet.absoluteFill}
-        source={{ uri: makeImgPath(backdropPath) }}
-      />
+      {backdropPath && (
+        <SlideBackgroundImg
+          style={StyleSheet.absoluteFill}
+          source={{ uri: makeImgPath(backdropPath) }}
+        />
+      )}
       <BlurView
         tint={isDark ? "dark" : "light"}
         intensity={90}
         style={StyleSheet.absoluteFill}
       >
         <Wrapper>
-          <Poster path={posterPath} />
+          {posterPath && <Poster path={posterPath} />}
           <Column>
             <Title>{originalTitle}</Title>
+            <Votes voteAverage={voteAverage} />
             <Overview>{ellipsisWords(overview, 55)}</Overview>
-            {vote > 0 && (
-              <Votes>
-                <AirbnbRating
-                  defaultRating={vote}
-                  count={5}
-                  size={20}
-                  showRating={false}
-                  isDisabled={true}
-                  selectedColor={isDark ? YELLOW_COLOR : DARK_GREY_COLOR}
-                />
-                <VotesRating>{vote} / 5</VotesRating>
-              </Votes>
-            )}
           </Column>
         </Wrapper>
       </BlurView>
@@ -89,8 +68,8 @@ const Slide: React.FC<ISlideProps> = ({
 };
 
 interface ISlideProps {
-  backdropPath: string;
-  posterPath: string;
+  backdropPath: string | null;
+  posterPath: string | null;
   originalTitle: string;
   overview: string;
   voteAverage: number;

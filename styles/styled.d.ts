@@ -5,5 +5,7 @@ declare module "styled-components" {
     backgroundColor: string;
     textColor: string;
     accentColor: string;
+    accentRedColor: string;
+    notFoundImageColor: string;
   }
 }

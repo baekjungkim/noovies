@@ -5,3 +5,4 @@ export const LIGHT_GREY_COLOR = "#b2bec3";
 export const DARK_GREY_COLOR = "#636e72";
 export const WHITE_COLOR = "#ecf0f1";
 export const ORIGIN_BLACK_COLOR = "#1e272e";
+export const RED_COLOR = "#eb2f06";

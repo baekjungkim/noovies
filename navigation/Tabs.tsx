@@ -25,6 +25,7 @@ const Tabs = () => {
         backgroundColor: isDark ? ORIGIN_BLACK_COLOR : BRIGHT_GREY_COLOR,
       }}
       screenOptions={{
+        unmountOnBlur: true,
         headerTitleStyle: {
           color: isDark ? "white" : BLACK_COLOR,
         },

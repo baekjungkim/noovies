@@ -2,14 +2,15 @@ import React, { useState } from "react";
 import AppLoading from "expo-app-loading";
 import { Image, useColorScheme } from "react-native";
 import * as Font from "expo-font";
-import { Feather } from "@expo/vector-icons";
+import { Feather, AntDesign } from "@expo/vector-icons";
 import { Asset } from "expo-asset";
 import { NavigationContainer } from "@react-navigation/native";
-import Tabs from "./navigation/Tabs";
-import Stack from "./navigation/Stack";
-import Root from "./navigation/Root";
 import { ThemeProvider } from "styled-components/native";
+import { QueryClient, QueryClientProvider } from "react-query";
+import Root from "./navigation/Root";
 import { darkTheme, lightTheme } from "./styles/theme";
+
+const queryClient = new QueryClient();
 
 const loadFonts = (fonts: any) =>
   fonts.map((font: string) => Font.loadAsync(font));
@@ -27,7 +28,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const onFinish = () => setReady(true);
   const startLoading = async () => {
-    const fonts = loadFonts([Feather.font]);
+    const fonts = loadFonts([Feather.font, AntDesign.font]);
     const images = loadImages([
       require("./assets/do-ma.jpeg"),
       "https://reactnative.dev/img/oss_logo.png",
@@ -47,11 +48,13 @@ export default function App() {
     );
   }
   return (
-    <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
-      <NavigationContainer>
-        {/* <Stack /> */}
-        <Root />
-      </NavigationContainer>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={isDark ? darkTheme : lightTheme}>
+        <NavigationContainer>
+          {/* <Stack /> */}
+          <Root />
+        </NavigationContainer>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
