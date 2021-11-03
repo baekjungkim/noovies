@@ -1,4 +1,4 @@
-export interface IMovie {
+export interface IMovieProps {
   poster_path: string | null;
   adult: boolean;
   overview: string;
@@ -16,6 +16,22 @@ export interface IMovie {
   vote_average: number;
 }
 
+export interface ITvProps {
+  backdrop_path: string | null;
+  first_air_date: string;
+  genre_ids: string[];
+  id: number;
+  name: string;
+  origin_country: string[];
+  original_language: string;
+  original_name: string;
+  overview: string;
+  popularity: number;
+  poster_path: string | null;
+  vote_average: number;
+  vote_count: number;
+}
+
 interface IBaseResponse {
   page: number;
   total_pages: number;
@@ -23,6 +39,10 @@ interface IBaseResponse {
 }
 
 export interface IMoviesResponse extends IBaseResponse {
-  results: IMovie[];
+  results: IMovieProps[];
   dates: { maximum: string; minimum: string };
+}
+
+export interface ITvResponse extends IBaseResponse {
+  results: ITvProps[];
 }

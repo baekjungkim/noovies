@@ -1,26 +1,24 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React from "react";
-import {
-  ActivityIndicator,
-  Dimensions,
-  FlatList,
-  useColorScheme,
-} from "react-native";
+import React, { useState } from "react";
+import { Dimensions, useColorScheme } from "react-native";
 import Swiper from "react-native-swiper";
 import styled from "styled-components/native";
 import { Feather } from "@expo/vector-icons";
-import { BLACK_COLOR, BRIGHT_GREY_COLOR } from "../styles/colors";
+import {
+  BLACK_COLOR,
+  BRIGHT_GREY_COLOR,
+  DARK_GREY_COLOR,
+} from "../styles/colors";
 import Slide from "../components/Slide";
 import HMedia from "../components/HMedia";
-import VMedia from "../components/VMedia";
 import { useQuery, useQueryClient } from "react-query";
-import { MOVIES } from "../api";
-import { IMovie, IMoviesResponse } from "../api.types";
+import { MOVIES_API } from "../api";
+import { IMovieProps, IMoviesResponse } from "../api.types";
+import Loader from "../components/Loader";
+import HList from "../components/HList";
 
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
+const FlatListContainer = styled.FlatList`
+  margin-bottom: 30px;
 `;
 
 const ListTitle = styled.Text`
@@ -31,15 +29,11 @@ const ListTitle = styled.Text`
   margin-bottom: 20px;
 `;
 
-const ListContainer = styled.View`
-  margin-bottom: 30px;
-`;
-
-const VSeparator = styled.View`
-  width: 20px;
-`;
-const HSeparator = styled.View`
-  height: 20px;
+const HSeparator = styled.View<{ isDark: boolean }>`
+  height: 1px;
+  background-color: ${(props) =>
+    props.isDark ? BRIGHT_GREY_COLOR : DARK_GREY_COLOR};
+  margin: 20px;
 `;
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -49,45 +43,25 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = ({
 }) => {
   const queryClient = useQueryClient();
   const isDark = useColorScheme() === "dark";
+  const [refreshing, setRefreshing] = useState(false);
 
-  const {
-    data: nowMoviesData,
-    isLoading: getNowMoviesLoading,
-    isRefetching: isRefetchingGetNowMovies,
-  } = useQuery<IMoviesResponse>(
-    ["movies", "getNowMovies"],
-    MOVIES.GET_NOW_MOVIES
-  );
-  const {
-    data: trendingData,
-    isLoading: getTrendingMoviesLoading,
-    isRefetching: isRefetchingGetTrendingMovies,
-  } = useQuery<IMoviesResponse>(
-    ["movies", "getTrendingMovies"],
-    MOVIES.GET_TRENDING
-  );
-  const {
-    data: upcomingData,
-    isLoading: getUpcomingMoviesLoading,
-    isRefetching: isRefetchingGetUpcomingMovies,
-  } = useQuery<IMoviesResponse>(
-    ["movies", "getUpcomingMovies"],
-    MOVIES.GET_UPCOMING
-  );
+  const { data: nowMoviesData, isLoading: getNowMoviesLoading } =
+    useQuery<IMoviesResponse>(
+      ["movies", "getNowMovies"],
+      MOVIES_API.GET_NOW_MOVIES
+    );
+  const { data: trendingData, isLoading: getTrendingMoviesLoading } =
+    useQuery<IMoviesResponse>(
+      ["movies", "getTrendingMovies"],
+      MOVIES_API.GET_TRENDING
+    );
+  const { data: upcomingData, isLoading: getUpcomingMoviesLoading } =
+    useQuery<IMoviesResponse>(
+      ["movies", "getUpcomingMovies"],
+      MOVIES_API.GET_UPCOMING
+    );
 
-  const onRefresh = () => {
-    queryClient.refetchQueries(["movies"]);
-  };
-
-  const renderVMedia = ({ item }: { item: IMovie }) => (
-    <VMedia
-      posterPath={item.poster_path}
-      title={item.title}
-      voteAverage={item.vote_average}
-    />
-  );
-
-  const renderHMedia = ({ item }: { item: IMovie }) => (
+  const renderHMedia = ({ item }: { item: IMovieProps }) => (
     <HMedia
       posterPath={item.poster_path}
       title={item.title}
@@ -96,21 +70,20 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = ({
     />
   );
 
-  const keyExtractor = (item: IMovie) => item.id + "";
+  const keyExtractor = (item: IMovieProps) => item.id + "";
 
   const loading =
     getNowMoviesLoading || getTrendingMoviesLoading || getUpcomingMoviesLoading;
-  const refreshing =
-    isRefetchingGetNowMovies ||
-    isRefetchingGetTrendingMovies ||
-    isRefetchingGetUpcomingMovies;
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.refetchQueries(["movies"]);
+    setRefreshing(false);
+  };
   return loading ? (
-    <Loader>
-      <ActivityIndicator />
-    </Loader>
+    <Loader />
   ) : (
-    <FlatList
+    <FlatListContainer<React.ElementType>
       onRefresh={onRefresh}
       refreshing={refreshing}
       ListHeaderComponent={
@@ -158,25 +131,16 @@ const Movies: React.FC<NativeStackScreenProps<any, "Movies">> = ({
             })}
           </Swiper>
 
-          <ListContainer>
-            <ListTitle>✅ Trending Movies</ListTitle>
-            <FlatList
-              horizontal
-              data={trendingData?.results}
-              keyExtractor={keyExtractor}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 30 }}
-              ItemSeparatorComponent={VSeparator}
-              renderItem={renderVMedia}
-            />
-          </ListContainer>
+          {trendingData ? (
+            <HList title="✅ Trending Movies" data={trendingData?.results} />
+          ) : null}
 
           <ListTitle>💝 Coming soon</ListTitle>
         </>
       }
       data={upcomingData?.results}
       keyExtractor={keyExtractor}
-      ItemSeparatorComponent={HSeparator}
+      ItemSeparatorComponent={() => <HSeparator isDark={isDark} />}
       renderItem={renderHMedia}
     />
   );
